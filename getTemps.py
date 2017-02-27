@@ -2,6 +2,7 @@ import time
 import subprocess
 import os
 import requests
+import settings
 
 # Initialise
 def initialise():
@@ -25,19 +26,22 @@ def readFile(file):
   tempfile.close()
   return(thetext)
 
-# post data to web hook (simple http post + params)
-def postTemp(key,probeID,temperature):
-  hdr = {'Content-Type': 'application/json'}
-  payload = {"key": key,"probeID": probeID,"temperature": temperature}
-  r = requests.post(postURL,params=payload)
-  print "Posting to API..."
-  print "Response - " + str(r.status_code)
-  print r.text
+# post data to api using python requests
+def postTemp(probeID,temp):
+  headers = {'content-type': 'application/x-www-form-urlencoded'}
+  payload = {"key":key,"probeID": probeID,"temp": temp}
+  response = requests.request("POST", url, data=payload, headers=headers)
+  
+  # Show additional info for troubleshooting
+  if verbose:
+    print "Posted to API : " + str(payload) + "Response - " + str(response.status_code)
+    print response.text
   return
 
 # main program loop
 def mainLoop():
   while 1:
+	  probes=findProbes()
           for probe in probes:
               probeData = readFile(probe)
               probeID = probe.split("/")[4]
@@ -45,19 +49,27 @@ def mainLoop():
               temperature = float(tempdata[2:]) / 1000
               probeNum =  str(probes.index(probe)+1)
               print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
-              if apiPost:
-                postTemp(key,probeID,temperature)
-          time.sleep(5)
-          os.system('clear')
+              if apipost:
+                postTemp(probeID,temperature)
+          time.sleep(60)
+
+
+
 
 # define vars
 probes = ''
-key='[api_key]'
-postURL='http://api_endpoint]'
-apiPost = True # change to false to disable api posting
+
+# read settings from settings.py
+key = settings.KEY
+url = settings.URL
+apipost = settings.APIPOST
+verbose = settings.VERBOSE
 
 # main program
 initialise()
-probes=findProbes()
+
+#probes=findProbes()
 mainLoop()
+
+
 
