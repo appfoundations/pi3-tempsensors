@@ -8,7 +8,7 @@ I created this script as a simple way to read temperature from multiple 1wire se
 Files:
 
 - getTemps.py - main script, call from shell using `python getTemps.py`
-- settings.py - settings file for your api end point and a couple of switches for getTemps.py
+- settings.py - settings file for your api end point and a couple of switches for getTemps.py (note: you will need to make a copy of the settings template file provided : 'cp settings_template.py settings.py')
 
 Making it autorun:
 
