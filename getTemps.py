@@ -1,3 +1,7 @@
+#!/usr/bin/python
+# Copyright (c) Logicc Sytems Ltd.
+# Author: David Jenkins
+
 import time
 import subprocess
 import os
@@ -38,23 +42,28 @@ def postTemp(probeID,temp):
     print response.text
   return
 
+def readProbes():
+  probes=""
+  probes=findProbes()
+  for probe in probes:
+    probeData = readFile(probe)
+    probeID = probe.split("/")[4]
+    tempdata = probeData.split("\n")[1].split(" ")[9]
+    temperature = float(tempdata[2:]) / 1000
+    probeNum =  str(probes.index(probe)+1)
+    print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+    if apipost:
+      postTemp(probeID,temperature)
+
+
 # main program loop
-def mainLoop():
-  while 1:
-	  probes=findProbes()
-          for probe in probes:
-              probeData = readFile(probe)
-              probeID = probe.split("/")[4]
-              tempdata = probeData.split("\n")[1].split(" ")[9]
-              temperature = float(tempdata[2:]) / 1000
-              probeNum =  str(probes.index(probe)+1)
-              print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
-              if apipost:
-                postTemp(probeID,temperature)
-          time.sleep(60)
-
-
-
+def mainCycle():
+  if loop:
+    while 1:
+      readProbes()
+      time.sleep(delay)
+  else:
+    readProbes()
 
 # define vars
 probes = ''
@@ -64,12 +73,11 @@ key = settings.KEY
 url = settings.URL
 apipost = settings.APIPOST
 verbose = settings.VERBOSE
+loop = settings.LOOP
+delay = settings.DELAY
 
 # main program
 initialise()
-
-#probes=findProbes()
-mainLoop()
-
+mainCycle()
 
 
