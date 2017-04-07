@@ -1,9 +1,11 @@
-*Python script to read from multiple DS18B20 + 1wire sensors and post data to simple API*
-============================================================================================
+TruckyPI - Mobile sensor logging for cars, trucks and anything else that moves!
+================================================================================
 
 Background:
 
 I created this script as a simple way to read temperature from multiple 1wire sensors using a Raspberry Pi3 and then send those readings back to a simple web API using http posts. I am using a simple breakout circuit for the pi that contains one terminal block and a 10k resistor to pullup between the 3.3v and data line. This circuit only requires 3 wires to be connect to the Pi and has been tested successfully with over 30 sensors (both the raw component and the waterproof type).
+
+Since I started, we have since added support for a range of sensors including humidty, door switches and current sensors.
 
 Files:
 
