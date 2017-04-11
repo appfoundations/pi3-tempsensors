@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (c) 2017 Logicc Systems Ltd.
 # Author: Tony DiCola
-# Bases on AdafruitDHT - thanks guys!
+# Bases on Adafruit https://github.com/adafruit/Adafruit_Python_MCP3008
 
 import sys
 import Adafruit_DHT
