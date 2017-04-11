@@ -1,62 +1,38 @@
-#!/usr/bin/python
-# Copyright (c) 2014 Adafruit Industries
-# Author: Tony DiCola
+#!/usr/bin/env python2.7  
+# script by Alex Eames http://RasPi.tv  
+# http://RasPi.tv/how-to-use-interrupts-with-python-on-the-raspberry-pi-and-rpi-gpio-part-3  
+import RPi.GPIO as GPIO  
+import time, sys
 
-import sys
-import time
-import RPi.GPIO as GPIO
-
-global state
-global lastState
-state=''
-lastState=''
-
-GPIO.setmode(GPIO.BCM)
- 
+# Read PIN from args
 if len(sys.argv) == 2:
     pin = int(sys.argv[1])
 else:
-    print('usage: sudo ./monitorDoors.py {GPIOpin#}')
-    print('eg: sudo ./monitorDoors.py 23 - Read from PIO #23')
+    print('usage: sudo ./monitorSwitch.py {GPIOpin#}')
+    print('eg: sudo ./monitorSwitch.py 23 - Read from PIO #23')
     sys.exit(1)
 
-
-GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # activate input with PullUp
-
-def init_state():
-    # Store initial state
-    state = GPIO.input(pin) 
-    lastState = GPIO.input(pin) 
-    print_state()
-    return
-
-
-def print_state():
+def pin_state():
+    state=GPIO.input(pin) 
     if state:
-        print "Door is OPEN"
+        print "Switch OPEN"
     else:
-        print "Door is CLOSED"
+        print "Switch CLOSED"
     return
 
-def monitor_state():
-    state=GPIO.input(pin) 
-    if lastState != state:
-        print_state()
-    lastState=state
-    time.sleep(0.1)
+# Define threaded callback functions - to run in another thread when events are detected and print current switch state
+def my_callback(channel):  
+    pin_state()
+  
+# GPIO - Setup and get pin ready for input, pulled up to avoid false detection.  
+GPIO.setmode(GPIO.BCM)  
+GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  
 
+# Add events for state changes on GPIO pins, both rising and falling edge events.
+GPIO.add_event_detect(pin, GPIO.BOTH, callback=my_callback, bouncetime=300)  
 
-
-init_state()
-print_state()
-
-#monitor_state() <-- at some point move the code below into function
-
+# Keep running for ever
 while True:
-    state=GPIO.input(pin) 
-    if lastState != state:
-        print_state()
-    lastState=state
-    time.sleep(0.1)
+    time.sleep(60) # 2 second delay
 
 
