@@ -21,5 +21,4 @@ def getserial():
   return cpuserial
 
 ### Program Loop ###
-
 print getserial()
