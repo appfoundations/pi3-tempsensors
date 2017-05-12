@@ -12,7 +12,7 @@ import settings
 def initialise():
   os.system('modprobe w1-gpio')  # Activate GPIO module
   os.system('modprobe w1-therm') # Activate Temperature module
-  os.system('clear') # clear screen
+#  os.system('clear') # clear screen
 
 # scans through /sys/devices to find 1wire files (active sensors) and save results to list
 def findProbes(probes=''):
@@ -33,7 +33,7 @@ def readFile(file):
 # post data to api using python requests
 def postTemp(probeID,temp):
   headers = {'content-type': 'application/x-www-form-urlencoded'}
-  payload = {"key":key,"probeID": probeID,"temp": temp}
+  payload = {"id":key,"probeID": probeID,"temp": temp}
   response = requests.request("POST", url, data=payload, headers=headers)
   
   # Show additional info for troubleshooting

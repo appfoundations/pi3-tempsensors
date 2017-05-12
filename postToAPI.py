@@ -9,21 +9,22 @@ import requests
 import settings
 import sqlite3
 
-def postData(data):
+def postData(key,data):
     headers = {'content-type': 'application/x-www-form-urlencoded'}
 
-    payload = {"id":data[0],"time": data[1], "probeID": data[2],"value": data[3], "type":data[4]}
+    payload = {"key":api_key,"id":data[0],"datecollected": data[1], "probeid": data[2],"temp": data[3], "type":data[4]}
     response = requests.request("POST", url, data=payload, headers=headers)
 
     # Show additional info for troubleshooting
     if verbose:
         print "Posted to API : " + str(payload) + "Response - " + str(response.status_code)
         print response.text
-    return response.status_code
+    return
 
 try:
     DB_NAME = settings.DB_NAME
     url = settings.URL
+    api_key = settings.API_KEY
     apipost = settings.APIPOST
     verbose = settings.VERBOSE
 except:
@@ -37,28 +38,22 @@ try:
     t = ('measure',)
     c.execute('SELECT table_idx FROM read_idx WHERE table_name=?',t)
     last_idx = c.fetchone()[0]
-    print last_idx
 
     t = (int(last_idx),)
     c.execute('SELECT * FROM measure WHERE idx>?', t)
     measures = c.fetchall()
-    #print measures
 
 except  Exception, e:
     print e
     print "Could read from DB"
 
 for mm in measures:
-    print mm
-    rr = postData(mm)
-    if rr == 200
-        last_idx = int(mm[0])
-    else
-        sys.exit(1)
+    postData(api_key,mm)
+    time.sleep(2)
 
 try:
-    t = (last_idx, 'measure',)
-    c.execute('UPDATE read_idx SET table_idx = ?  WHERE table_name=? ',t)
+    if len(measures)>0: 
+        c.execute('UPDATE read_idx SET table_idx = ? WHERE table_name = ?',( mm[0],'measure'))
     conn.commit()
     c.close()
     conn.close()

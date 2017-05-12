@@ -30,7 +30,10 @@ mcp = Adafruit_MCP3008.MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
 
 # print('Reading MCP3008 values, press Ctrl-C to quit...')
 value = '{0:0.1f}'.format(mcp.read_adc(1) * 3.3 / 1024 * 20)
+# value = mcp.read_adc(1)
 print value
+# value = mcp.read_adc(0)
+# print value
 
 try:
     conn = sqlite3.connect(DB_NAME)
@@ -39,9 +42,8 @@ try:
     c.execute('SELECT value FROM params WHERE name=?', t)
     serial = c.fetchone()[0]
     db_entry = (str('MCP3008[0]')+'@'+str(serial),value,'current')
-    c.execute("INSERT INTO measure (time,probeId,measure, type) VALUES (CURRENT_TIMESTAMP,?,?,?)", db_entry)
+    c.execute("INSERT INTO measure (time,probeId,measure, type) VALUES (datetime('now', 'localtime'),?,?,?)", db_entry)
     conn.commit()
-    c.close()
     conn.close()
 except  Exception, e:
     print e

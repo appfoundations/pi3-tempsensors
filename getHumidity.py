@@ -5,23 +5,34 @@
 
 import sys
 import Adafruit_DHT
+import settings
+import sqlite3
+
+try:
+    DHT_V = settings.DHT_V
+    DHT_PIN = settings.DHT_PIN_1
+    DB_NAME = settings.DB_NAME
+except:
+    print "Could not read settings"
+    sys.exit(1)
+
 
 # Parse command line parameters.
 sensor_args = { '11': Adafruit_DHT.DHT11,
                 '22': Adafruit_DHT.DHT22,
                 '2302': Adafruit_DHT.AM2302 }
 
-if len(sys.argv) == 3 and sys.argv[1] in sensor_args:
-    sensor = sensor_args[sys.argv[1]]
-    pin = sys.argv[2]
-else:
-    print('usage: sudo ./Adafruit_DHT.py [11|22|2302] GPIOpin#')
-    print('example: sudo ./Adafruit_DHT.py 2302 24 - Read from an AM2302 connected to GPIO #24')
-    sys.exit(1)
+# if len(sys.argv) == 3 and sys.argv[1] in sensor_args:
+#     sensor = sensor_args[sys.argv[1]]
+#     pin = sys.argv[2]
+# else:
+#     print('usage: sudo ./Adafruit_DHT.py [11|22|2302] GPIOpin#')
+#     print('example: sudo ./Adafruit_DHT.py 2302 4 - Read from an AM2302 connected to GPIO #4')
+#     sys.exit(1)
 
 # Try to grab a sensor reading.  Use the read_retry method which will retry up
 # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
-humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
+humidity, temperature = Adafruit_DHT.read_retry(DHT_V, DHT_PIN)
 
 # Un-comment the line below to convert the temperature to Fahrenheit.
 # temperature = temperature * 9/5.0 + 32
@@ -35,3 +46,18 @@ if humidity is not None and temperature is not None:
 else:
     print('Failed to get reading. Try again!')
     sys.exit(1)
+
+try:
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    t = ('PI_KEY',)
+    c.execute('SELECT value FROM params WHERE name=?', t)
+    serial = c.fetchone()[0]
+    db_entry = [(str('DHT11')+'-'+str(DHT_PIN)+'-T@'+str(serial),temperature,'temperature'),
+                (str('DHT11')+'-'+str(DHT_PIN)+'-H@'+str(serial),humidity,'humidity')]
+    c.executemany("INSERT INTO measure (time,probeId,measure, type) VALUES (datetime('now', 'localtime'),?,?,?)", db_entry)
+    conn.commit()
+    conn.close()
+except  Exception, e:
+    print e
+    print "Could not save to DB"

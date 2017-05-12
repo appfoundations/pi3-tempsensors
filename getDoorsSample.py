@@ -41,14 +41,4 @@ def my_callback(channel):
 # when a changing edge is detected on port 25, regardless of whatever   
 # else is happening in the program, the function my_callback will be run  
 for i, pin in enumerate(DOOR_PINS):
-    GPIO.add_event_detect(pin, GPIO.BOTH, callback=my_callback, bouncetime=500)  
-  
-try:
-    while 1:
-        sleep(30)         # wait 60 seconds  
-
-except:
-    print "Interrupted"
-  
-finally:                   # this block will run no matter how the try block exits  
-    GPIO.cleanup()         # clean up after yourself  
+    my_callback(pin)  

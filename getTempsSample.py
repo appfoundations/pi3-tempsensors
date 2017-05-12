@@ -8,15 +8,10 @@ import os
 import requests
 import settings
 import sqlite3
+import sys
 
 try:
   # read settings from settings.py
-  key = settings.KEY
-  url = settings.URL
-  apipost = settings.APIPOST
-  verbose = settings.VERBOSE
-  loop = settings.LOOP
-  delay = settings.DELAY
   DB_NAME = settings.DB_NAME
 except:
   print "Could not read settings"
@@ -52,7 +47,7 @@ def postTemp():
     t = ('PI_KEY',)
     c.execute('SELECT value FROM params WHERE name=?', t)
     serial = c.fetchone()[0]
-    c.executemany("INSERT INTO measure (time,probeId,measure, type) VALUES (CURRENT_TIMESTAMP,? || '@"+str(serial)+"',?,'temperature')", probes_data)
+    c.executemany("INSERT INTO measure (time,probeId,measure, type) VALUES (datetime('now', 'localtime'),? || '@"+str(serial)+"',?,'temperature')", probes_data)
     conn.commit()
     conn.close()
   except  Exception, e:
@@ -68,9 +63,9 @@ def readProbes():
     tempdata = probeData.split("\n")[1].split(" ")[9]
     temperature = float(tempdata[2:]) / 1000
     probeNum =  str(probes.index(probe)+1)
-    print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+    #print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
     probes_data.append((probeID,temperature))
-  print probes_data
+  #print probes_data
 
 
 # define vars
@@ -81,4 +76,3 @@ probes_data = []
 initialise()
 readProbes()
 postTemp()
-

@@ -19,7 +19,7 @@ CREATE TABLE measure(
 );
 
 CREATE TABLE read_idx(
-   table_name TEXT,
+   table_name TEXT PRIMARY KEY,
    table_idx INTEGER
 );
 
