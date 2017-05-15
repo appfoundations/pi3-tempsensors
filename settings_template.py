@@ -16,14 +16,16 @@ SQL_FILE_NAME = "db_init.sql" # sql name to DB init
 
 # DHT Info
 DHT_V = 11      # DHT version '11': Adafruit_DHT.DHT11, '22': Adafruit_DHT.DHT22, '2302': Adafruit_DHT.AM2302 
-DHT_PIN = 25    # DHT connection pin
+DHT_PINS = [17,27]
+
+# CT / ADC Info
+ADC_CHANNELS = [0,1]
 
 # Software SPI configuration - MCP3008 ADC:
-# BCM pins numbers
 CLK  = 6
 MISO = 13
 MOSI = 19
 CS   = 26
 
 # Door sensors 
-DOOR_PINS = [18]    # array with door switch connections
+DOOR_PINS = [22,5]

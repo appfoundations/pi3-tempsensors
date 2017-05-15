@@ -29,8 +29,3 @@ CREATE TABLE params(
    value TEXT
 );
 
-INSERT INTO params (name,type,value)
-VALUES ( 'API', 'URL', 'https://dweet.io/dweet/for/uOLM3xEV2gEhEeTJkTxt');
-
-INSERT INTO params (name,type,value)
-VALUES ( 'PI_KEY', 'STRING', '0000000000000000');

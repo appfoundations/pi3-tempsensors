@@ -19,7 +19,7 @@ def postData(key,data):
     if verbose:
         print "Posted to API : " + str(payload) + "Response - " + str(response.status_code)
         print response.text
-    return
+    return response.status_code
 
 try:
     DB_NAME = settings.DB_NAME
