@@ -70,6 +70,14 @@ if APIPOST:
     putDataAPI.postDBData()
     print datetime.datetime.now().strftime('%H:%M:%S')
 
+if APIPOST:
+    temp = int(datetime.datetime.now().strftime('%H%M'))
+    if temp < 10:
+        print '\tclean old Data from DB'
+        putDataDB.cleanData()
+        print datetime.datetime.now().strftime('%H:%M:%S')
+
+
 print "End master.py"
 print
 

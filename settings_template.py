@@ -8,7 +8,8 @@ DELAY = 10 # number of seconds between readings (if running in loop mode)
 
 # API Settings
 URL = 'your api endpoint url'
-KEY = 'your api key'
+API_KEY = 'your api key'
+PI_KEY = 'your pi serial'
 
 # DB Settings
 DB_NAME = "database.db" # DB name for measures and params

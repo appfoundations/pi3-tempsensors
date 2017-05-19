@@ -28,7 +28,8 @@ def postToUrl(key,data):
     try:
         response = requests.request("POST", url, data=payload, headers=headers)
     except Exception, e:
-        print 
+        print e
+        print __name__ + ": error on url post"
 
     # Show additional info for troubleshooting
     if verbose:
@@ -43,7 +44,10 @@ def postDBData():
         c = conn.cursor()
         t = ('measure',)
         c.execute('SELECT table_idx FROM read_idx WHERE table_name=?',t)
-        last_idx = c.fetchone()[0]
+        try :
+            last_idx = c.fetchone()[0]
+        except :
+            last_idx = 0
 
         t = (int(last_idx),)
         c.execute('SELECT * FROM measure WHERE idx>?', t)
@@ -53,7 +57,8 @@ def postDBData():
 
     except  Exception, e:
         print e
-        print "Could read from DB"
+        print __name__ + ": Could not read from DB"
+        return
 
     post = ''
     lastIdx = None
@@ -75,4 +80,4 @@ def postDBData():
             conn.close()
     except  Exception, e:
         print e
-        print "Could not close connection to DB"
+        print __name__ + ": Could not close connection to DB"

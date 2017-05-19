@@ -28,7 +28,7 @@ try:
     apipost = settings.APIPOST
     verbose = settings.VERBOSE
 except:
-    print "Could not read settings"
+    print __name__ + ": Could not read settings"
     sys.exit(1)
 
 
@@ -45,7 +45,7 @@ try:
 
 except  Exception, e:
     print e
-    print "Could read from DB"
+    print __name__ + ": Could not read from DB"
 
 for mm in measures:
     postData(api_key,mm)
@@ -59,4 +59,4 @@ try:
     conn.close()
 except  Exception, e:
     print e
-    print "Could not close connection to DB"
+    print __name__ + ": Could not close connection to DB"

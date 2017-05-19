@@ -6,12 +6,22 @@
   
 import RPi.GPIO as GPIO  
 from time import sleep
-import settings
 import sqlite3
+
+
+try:
+    import putDataDB
+    import settings
+except  Exception, e:
+    print e
+    print __name__ + ": Could not perform import"
+    sys.exit(1)
 
 try:
     DOOR_PINS = settings.DOOR_PINS
     DB_NAME = settings.DB_NAME
+    serial = settings.PI_KEY
+    verbose = settings.VERBOSE
 except:
     print "Could not read settings"
     sys.exit(1)
@@ -21,22 +31,12 @@ for i, pin in enumerate(DOOR_PINS):
     GPIO.setup(pin, GPIO.IN)    # set GPIO25 as input (button)  
   
 # Define a threaded callback function to run in another thread when events are detected  
-def my_callback(channel):  
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        t = ('PI_KEY',)
-        c.execute('SELECT value FROM params WHERE name=?', t)
-        serial = c.fetchone()[0]
-        value = 'OPEN' if GPIO.input(channel) else 'CLOSE'
-        db_entry = (str(channel)+'@'+str(serial), value, 'door')
-        c.execute("INSERT INTO measure (time,probeId,measure, type) VALUES (datetime('now', 'localtime'),?,?,?)", db_entry)
-        conn.commit()
-        conn.close()
-        print str(value)+'@'+str(channel)
-    except  Exception, e:
-        print e
-        print "Could not save to DB"
+def my_callback(channel):
+    value = 'OPEN' if GPIO.input(channel) else 'CLOSE'
+    entry = [(str(channel)+'@'+str(serial), value, 'door')]
+    if verbose:
+        print entry[0]
+    putDataDB.postData(entry)
   
 # when a changing edge is detected on port 25, regardless of whatever   
 # else is happening in the program, the function my_callback will be run  

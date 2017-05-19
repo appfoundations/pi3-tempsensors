@@ -37,3 +37,36 @@ def postData(data):
     except Exception, e:
         print e
         print "Could not close DB connection"
+
+
+def cleanData():
+    try:
+        conn = sqlite3.connect(DB_NAME,15)
+    except  Exception, e:
+        print e
+        print "Could not open to DB"
+        sys.exit(1)
+
+    try:
+        c = conn.cursor()
+        t = ('measure',)
+        c.execute('SELECT table_idx FROM read_idx WHERE table_name=?',t)
+        try :
+            last_idx = c.fetchone()[0]-500
+        except :
+            last_idx = 0
+
+        t = (int(last_idx),)
+        c.execute('DELETE FROM measure WHERE idx<?', t)
+        conn.commit()
+        conn.execute("VACUUM")
+
+    except  Exception, e:
+        print e
+        print "Could not DELETE/VACCUM DB"
+
+    try:
+        conn.close()
+    except Exception, e:
+        print e
+        print "Could not close DB connection"
