@@ -19,9 +19,12 @@ CREATE TABLE measure(
 );
 
 CREATE TABLE read_idx(
-   table_name TEXT,
+   table_name TEXT PRIMARY KEY,
    table_idx INTEGER
 );
+
+INSERT INTO read_idx (table_name,table_idx) VALUES ('measure',0);
+/* COMMIT; */
 
 CREATE TABLE params(
    name TEXT PRIMARY KEY,
@@ -29,8 +32,3 @@ CREATE TABLE params(
    value TEXT
 );
 
-INSERT INTO params (name,type,value)
-VALUES ( 'API', 'URL', 'https://dweet.io/dweet/for/uOLM3xEV2gEhEeTJkTxt');
-
-INSERT INTO params (name,type,value)
-VALUES ( 'PI_KEY', 'STRING', '0000000000000000');

@@ -2,17 +2,27 @@
 # Copyright (c) Logicc Sytems Ltd.
 # Author: David Jenkins
 
+import sys
 import time
 import subprocess
 import os
 import requests
 import settings
 
+try:
+  # read settings from settings.py
+  verbose = settings.VERBOSE
+  serial = settings.PI_KEY
+except Exception, e:
+  print __name__ + ": Could not read settings"
+  print e
+  sys.exit(1)
+
 # Initialise
 def initialise():
   os.system('modprobe w1-gpio')  # Activate GPIO module
   os.system('modprobe w1-therm') # Activate Temperature module
-  os.system('clear') # clear screen
+#  os.system('clear') # clear screen
 
 # scans through /sys/devices to find 1wire files (active sensors) and save results to list
 def findProbes(probes=''):
@@ -30,20 +40,9 @@ def readFile(file):
   tempfile.close()
   return(thetext)
 
-# post data to api using python requests
-def postTemp(probeID,temp):
-  headers = {'content-type': 'application/x-www-form-urlencoded'}
-  payload = {"key":key,"probeID": probeID,"temp": temp}
-  response = requests.request("POST", url, data=payload, headers=headers)
-  
-  # Show additional info for troubleshooting
-  if verbose:
-    print "Posted to API : " + str(payload) + "Response - " + str(response.status_code)
-    print response.text
-  return
-
 def readProbes():
-  probes=""
+  probes = ''
+  probesData = []
   probes=findProbes()
   for probe in probes:
     probeData = readFile(probe)
@@ -51,33 +50,12 @@ def readProbes():
     tempdata = probeData.split("\n")[1].split(" ")[9]
     temperature = float(tempdata[2:]) / 1000
     probeNum =  str(probes.index(probe)+1)
-    print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
-    if apipost:
-      postTemp(probeID,temperature)
+    probesData.append((str(probeID)+'@'+str(serial),temperature,'temperature'))
+    if verbose:
+      print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+  return probesData
 
-
-# main program loop
-def mainCycle():
-  if loop:
-    while 1:
-      readProbes()
-      time.sleep(delay)
-  else:
-    readProbes()
-
-# define vars
-probes = ''
-
-# read settings from settings.py
-key = settings.KEY
-url = settings.URL
-apipost = settings.APIPOST
-verbose = settings.VERBOSE
-loop = settings.LOOP
-delay = settings.DELAY
-
-# main program
+# initialise
 initialise()
-mainCycle()
 
 
