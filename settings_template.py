@@ -35,6 +35,12 @@ DOOR_PINS = [22]
 # Siren/Beacon
 WARN_PIN = 21
 SIGNAL_TIME = 5
+MAX_TIME_SOUND = 5 * 60         # max time sound plays - seconds
+
+TEMP_ABOVE_AUDIO_FILE = 'above.mp3'
+TEMP_BELOW_AUDIO_FILE = 'below.mp3'
+DOOR_OPEN_AUDIO_FILE = 'door.mp3'
 
 # Clear warning pin
 CLEAR_WARN_PIN = 5
+BUTTON_MIN_INTERVAL = 15 * 60   # min time from last button call - seconds

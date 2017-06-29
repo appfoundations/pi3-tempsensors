@@ -21,8 +21,11 @@ except  Exception, e:
 try:
     CLEAR_WARN_PIN = settings.CLEAR_WARN_PIN
     verbose = settings.VERBOSE
-    MAX_TIME = 30
-    BUTTON_MIN_INTERVAL = 5 * 60
+    MAX_TIME = settings.MAX_TIME_SOUND
+    BUTTON_MIN_INTERVAL = settings.BUTTON_MIN_INTERVAL
+    tempAboveAudio = settings.TEMP_ABOVE_AUDIO_FILE
+    tempBelowAudio = settings.TEMP_BELOW_AUDIO_FILE
+    doorOpenAudio = settings.DOOR_OPEN_AUDIO_FILE
 except:
     print "Could not read settings"
     sys.exit(1)
@@ -68,11 +71,11 @@ def main(argv):
             warn = arg
 
     if   warn == 'tempAbove':
-        audioFile = "above.mp3"
+        audioFile = tempAboveAudio
     elif warn == 'tempBelow':
-        audioFile = "below.mp3"
+        audioFile = tempBelowAudio
     elif warn == 'doorOpen':
-        audioFile = "door.mp3"
+        audioFile = doorOpenAudio
     
     try:
         f = open('buttonLastCall.pckl', 'rb')
