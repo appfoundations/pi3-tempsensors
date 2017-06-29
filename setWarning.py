@@ -15,7 +15,8 @@ import datetime
 try:
     verbose = settings.VERBOSE
     serial = settings.PI_KEY
-    MAX_OPEN_TIME = 2 * 60
+    BUTTON_MIN_INTERVAL = settings.BUTTON_MIN_INTERVAL
+    MAX_OPEN_TIME = settings.MAX_OPEN_TIME
 except Exception, e:
     print __name__ + ": Could not read settings"
     print e
@@ -31,6 +32,26 @@ except Exception, e:
 GPIO.setmode(GPIO.BCM)     # set up BCM GPIO numbering  
 
 def setWarn( data ):
+    try:
+        f = open('buttonLastCall.pckl', 'rb')
+        last = pickle.load(f)
+        f.close()
+        diff = (datetime.datetime.now() - last).total_seconds()
+        if verbose:
+            print 'read last button call time'
+            print last
+            print 'minutes since last button call'
+            print diff
+    except:
+        diff = BUTTON_MIN_INTERVAL + 100
+        if verbose:
+            print 'no record from button call'
+
+    if diff < BUTTON_MIN_INTERVAL:
+        if verbose:
+            print 'time since last button call not enough'
+        sys.exit()
+
     try:
         f = open('limits.pckl', 'rb')
         limits = pickle.load(f)
@@ -51,8 +72,6 @@ def setWarn( data ):
             print lastDoorStatus
     except:
         lastDoorStatus = None
-
-    
 
     for item in data:
         print 'item'

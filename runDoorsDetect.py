@@ -26,7 +26,7 @@ try:
     serial = settings.PI_KEY
     verbose = settings.VERBOSE
     WARNING = settings.WARNING
-    BUTTON_MIN_INTERVAL = settings.BUTTON_MIN_INTERVAL
+    MAX_OPEN_TIME = settings.MAX_OPEN_TIME
 except:
     print "Could not read settings"
     sys.exit(1)
@@ -93,7 +93,7 @@ for i, pin in enumerate(DOOR_PINS):
   
 try:
     while 1:
-        sleep(BUTTON_MIN_INTERVAL)         # wait BUTTON_MIN_INTERVAL seconds  
+        sleep(MAX_OPEN_TIME)         # wait MAX_OPEN_TIME seconds  
         if WARNING:
             print '\tset Warning'
             setWarning.setWarn(doorsData.values())

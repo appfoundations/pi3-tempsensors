@@ -22,7 +22,7 @@ try:
     CLEAR_WARN_PIN = settings.CLEAR_WARN_PIN
     verbose = settings.VERBOSE
     MAX_TIME = settings.MAX_TIME_SOUND
-    BUTTON_MIN_INTERVAL = settings.BUTTON_MIN_INTERVAL
+
     tempAboveAudio = settings.TEMP_ABOVE_AUDIO_FILE
     tempBelowAudio = settings.TEMP_BELOW_AUDIO_FILE
     doorOpenAudio = settings.DOOR_OPEN_AUDIO_FILE
@@ -77,26 +77,6 @@ def main(argv):
     elif warn == 'doorOpen':
         audioFile = doorOpenAudio
     
-    try:
-        f = open('buttonLastCall.pckl', 'rb')
-        last = pickle.load(f)
-        f.close()
-        diff = (datetime.datetime.now() - last).total_seconds()
-        if verbose:
-            print 'read last button call time'
-            print last
-            print 'minutes since last button call'
-            print diff
-    except:
-        diff = 24*60*60
-        if verbose:
-            print 'no record from button call'
-
-    if diff < BUTTON_MIN_INTERVAL:
-        if verbose:
-            print 'time since last button call not enough'
-        sys.exit()
-
     try: 
         audioFile
     except NameError:

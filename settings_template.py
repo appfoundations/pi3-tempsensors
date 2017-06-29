@@ -31,6 +31,7 @@ CS   = 26
 
 # Door sensors 
 DOOR_PINS = [22]
+MAX_OPEN_TIME = 2*60 # max time door open - seconds
 
 # Siren/Beacon
 WARN_PIN = 21
