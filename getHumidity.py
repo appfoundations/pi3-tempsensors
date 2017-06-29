@@ -1,37 +1,47 @@
 #!/usr/bin/python
 # Copyright (c) 2017 Logicc Systems Ltd.
-# Author: Tony DiCola
+# 
 # Bases on AdafruitDHT - thanks guys!
 
 import sys
 import Adafruit_DHT
+import settings
+from time import sleep
 
-# Parse command line parameters.
-sensor_args = { '11': Adafruit_DHT.DHT11,
-                '22': Adafruit_DHT.DHT22,
-                '2302': Adafruit_DHT.AM2302 }
-
-if len(sys.argv) == 3 and sys.argv[1] in sensor_args:
-    sensor = sensor_args[sys.argv[1]]
-    pin = sys.argv[2]
-else:
-    print('usage: sudo ./Adafruit_DHT.py [11|22|2302] GPIOpin#')
-    print('example: sudo ./Adafruit_DHT.py 2302 24 - Read from an AM2302 connected to GPIO #24')
+try:
+    verbose = settings.VERBOSE
+    DHT_V = settings.DHT_V
+    serial = settings.PI_KEY
+except Exception, e:
+    print __name__ + ": Could not read settings"
+    print e
     sys.exit(1)
 
-# Try to grab a sensor reading.  Use the read_retry method which will retry up
-# to 15 times to get a sensor reading (waiting 2 seconds between each retry).
-humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
+try:
+    DHT_PINS = settings.DHT_PINS
+except:
+    if verbose:
+        print 'set DHT_PINS = []'
+    DHT_PINS = []
 
-# Un-comment the line below to convert the temperature to Fahrenheit.
-# temperature = temperature * 9/5.0 + 32
 
-# Note that sometimes you won't get a reading and
-# the results will be null (because Linux can't
-# guarantee the timing of calls to read the sensor).
-# If this happens try again!
-if humidity is not None and temperature is not None:
-    print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity))
-else:
-    print('Failed to get reading. Try again!')
-    sys.exit(1)
+
+# Try to grab a sensor reading.
+def readDHT():
+    values=[]
+    for i, pin in enumerate(DHT_PINS):
+        for num in range(1,5):
+            humidity, temperature = Adafruit_DHT.read(DHT_V, pin)
+            if humidity is not None and temperature is not None and humidity < 120:
+                if verbose:
+                    print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity))
+                break
+            sleep(2) 
+        if humidity > 120:
+            humidity, temperature = None, None
+        values.append(('H-'+str(pin)+'@'+str(serial),humidity,'humidity'))
+        values.append(('T-'+str(pin)+'@'+str(serial),temperature,'temperature'))
+        
+    return values
+
+
