@@ -3,7 +3,7 @@
 # getTemps script switches
 APIPOST = True # change to enable/disable api posting
 VERBOSE = True # change to enable/disable verbose output
-TEMPWARN = True # change to enable/disable Siren/Beacon output
+WARNING = True # change to enable/disable Siren/Beacon output
 
 # API Settings
 URL = 'your api endpoint url'

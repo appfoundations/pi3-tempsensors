@@ -7,11 +7,14 @@
 import RPi.GPIO as GPIO  
 from time import sleep
 import sqlite3
+import datetime
+import pickle
 
 
 try:
     import putDataDB
     import settings
+    import setWarning
 except  Exception, e:
     print e
     print __name__ + ": Could not perform import"
@@ -22,22 +25,66 @@ try:
     DB_NAME = settings.DB_NAME
     serial = settings.PI_KEY
     verbose = settings.VERBOSE
+    WARNING = settings.WARNING
 except:
     print "Could not read settings"
     sys.exit(1)
 
 GPIO.setmode(GPIO.BCM)     # set up BCM GPIO numbering  
-for i, pin in enumerate(DOOR_PINS):
-    GPIO.setup(pin, GPIO.IN)    # set GPIO25 as input (button)  
-  
+doorsData = {}
+
+def update_lastStatusRecord (entry):
+    entry = entry + (datetime.datetime.now(),)
+    try:
+        f = open('lastDoorStatus.pckl', 'rb')
+        lastDoorStatus = pickle.load(f)
+        f.close()
+        if verbose:
+            print 'last door status'
+            print lastDoorStatus
+            print
+    except:
+        lastDoorStatus = {}
+
+    try:
+        lastDoorStatus[entry[0]]
+    except:
+        lastDoorStatus[entry[0]] = entry
+
+    if lastDoorStatus[entry[0]][1] != entry[1]:
+        lastDoorStatus[entry[0]] = entry
+
+    try:
+        f = open('lastDoorStatus.pckl', 'wb')
+        pickle.dump(lastDoorStatus, f)
+        f.close()
+    except Exception, e:
+        print e
+        print 'failed to save last door status'
+
+
 # Define a threaded callback function to run in another thread when events are detected  
 def my_callback(channel):
+    sleep(2)
     value = 'OPEN' if GPIO.input(channel) else 'CLOSE'
-    entry = [(str(channel)+'@'+str(serial), value, 'door')]
+    entry = [('Door-'+str(channel)+'@'+str(serial), value, 'door')]
+    global doorsData
+    doorsData[entry[0][0]] = entry[0]
     if verbose:
         print entry[0]
+        print
     putDataDB.postData(entry)
-  
+    if WARNING:
+        update_lastStatusRecord(entry[0])
+        print '\tset Warning'
+        setWarning.setWarn(entry)
+        
+
+# get an initial value from doors status
+for i, pin in enumerate(DOOR_PINS):
+    GPIO.setup(pin, GPIO.IN)    # set GPIO25 as input (button)  
+    my_callback(pin)
+
 # when a changing edge is detected on port 25, regardless of whatever   
 # else is happening in the program, the function my_callback will be run  
 for i, pin in enumerate(DOOR_PINS):
@@ -45,9 +92,13 @@ for i, pin in enumerate(DOOR_PINS):
   
 try:
     while 1:
-        sleep(30)         # wait 60 seconds  
+        sleep(30)         # wait 30 seconds  
+        if WARNING:
+            print '\tset Warning'
+            setWarning.setWarn(doorsData.values())
 
-except:
+except Exception,e:
+    print e
     print "Interrupted"
   
 finally:                   # this block will run no matter how the try block exits  
