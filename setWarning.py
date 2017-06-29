@@ -21,6 +21,13 @@ except Exception, e:
     print e
     sys.exit(1)
 
+try:
+    import putWarnAPI
+except Exception, e:
+    print __name__ + ": Could not perform imports"
+    print e
+    sys.exit(1)
+
 GPIO.setmode(GPIO.BCM)     # set up BCM GPIO numbering  
 
 def setWarn( data ):
@@ -66,8 +73,10 @@ def setWarn( data ):
 
             if limit is not None and (item[1] > limit['max']):
                 warn = 'tempAbove'
+                msg = 'Warning! Temperature Above Acceptable Levels (' + str(item[1]) + ' > ' + str(limit['max']) + ')'
             elif limit is not None and (item[1] < limit['min']):    
                 warn = 'tempBelow'
+                msg = 'Warning! Temperature Below Acceptable Levels (' + str(item[1]) + ' < ' + str(limit['min']) + ')'
             else:
                 warn = None
 
@@ -91,17 +100,22 @@ def setWarn( data ):
 
             if item[1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
                 warn = 'doorOpen'
+                msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec < ' + str(MAX_OPEN_TIME) + 'sec )'
             else:
                 warn = None
 
         if warn is not None:
             if verbose:
                 print 'setting warning'
+            # check if sound play is ON
             cmd = "ps -ef | grep setSiren | grep -v grep"
             pp = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
             if pp.communicate()[0] == '':
+                # if play is OFF - start play (backend/new thread)
                 subprocess.Popen(['python', 'setSiren.py','-w', warn])
-            
+                # send warning email - inside play check to avoid high volume of mails
+                putWarnAPI.postWarn(item[0], msg)
+
             return True
         
     return False

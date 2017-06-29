@@ -8,6 +8,7 @@ WARNING = True # change to enable/disable Siren/Beacon output
 # API Settings
 URL = 'your api endpoint url'
 URL_LIMTS = 'your api endpoint url - get temperature limits'
+URL_WARN = 'your api endpoint url - send warning email'
 API_KEY = 'your api key'
 PI_KEY = 'your pi serial'
 
@@ -29,8 +30,11 @@ MOSI = 19
 CS   = 26
 
 # Door sensors 
-DOOR_PINS = [22,5]
+DOOR_PINS = [22]
 
 # Siren/Beacon
 WARN_PIN = 21
 SIGNAL_TIME = 5
+
+# Clear warning pin
+CLEAR_WARN_PIN = 5
