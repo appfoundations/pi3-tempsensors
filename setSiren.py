@@ -85,7 +85,7 @@ def main(argv):
     else:
         player = subprocess.Popen(["omxplayer", audioFile, "-o", "local", "--loop"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         GPIO.setup(CLEAR_WARN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(CLEAR_WARN_PIN, GPIO.FALLING, callback=my_callback, bouncetime=500)
+        GPIO.add_event_detect(CLEAR_WARN_PIN, GPIO.BOTH, callback=my_callback, bouncetime=500)
 
 
     time.sleep(MAX_TIME)
