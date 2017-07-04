@@ -17,6 +17,7 @@ try:
     serial = settings.PI_KEY
     BUTTON_MIN_INTERVAL = settings.BUTTON_MIN_INTERVAL
     MAX_OPEN_TIME = settings.MAX_OPEN_TIME
+    TEMP_WARN_DELAY = settings.TEMPERATURE_WARN_DELAY
 except Exception, e:
     print __name__ + ": Could not read settings"
     print e
@@ -50,7 +51,7 @@ def setWarn( data ):
     if diff < BUTTON_MIN_INTERVAL:
         if verbose:
             print 'time since last button call not enough'
-        sys.exit()
+        return
 
     try:
         f = open('limits.pckl', 'rb')
@@ -59,6 +60,7 @@ def setWarn( data ):
         if verbose:
             print 'configured limits'
             print limits
+            print ''
     except:
         limits = None
 
@@ -70,14 +72,25 @@ def setWarn( data ):
         if verbose:
             print 'last door status'
             print lastDoorStatus
+            print ''
     except:
         lastDoorStatus = None
 
+    try:
+        f = open('temperatureStatus.pckl', 'rb')
+        temperatureStatus = pickle.load(f)
+        f.close()
+        if verbose:
+            print 'temperature sensors status'
+            print temperatureStatus
+            print ''
+    except:
+        temperatureStatus = {}
+
     for item in data:
-        print 'item'
-        print item
         limit = None
         warn  = None
+        delta = None
         if item[2] == 'temperature':
             if verbose:
                 print 'temperature item:'
@@ -87,17 +100,47 @@ def setWarn( data ):
                 print limit
             except:
                 limit = None
-
-            limit = None
-
-            if limit is not None and (item[1] > limit['max']):
+                
+            if limit is not None and (item[1] > float(limit['max'])):
                 warn = 'tempAbove'
                 msg = 'Warning! Temperature Above Acceptable Levels (' + str(item[1]) + ' > ' + str(limit['max']) + ')'
-            elif limit is not None and (item[1] < limit['min']):    
+            elif limit is not None and (item[1] < float(limit['min'])):    
                 warn = 'tempBelow'
                 msg = 'Warning! Temperature Below Acceptable Levels (' + str(item[1]) + ' < ' + str(limit['min']) + ')'
             else:
                 warn = None
+
+            if warn is None:
+                temperatureStatus[item[0]] = None
+            else:
+                try:
+                    temperatureStatus[item[0]]
+                    if temperatureStatus[item[0]] is not None:
+                        delta = (datetime.datetime.now() - temperatureStatus[item[0]]).total_seconds()
+                    else:
+                        delta = None
+                except:
+                    delta = None
+
+                if delta is None:
+                    warn = None
+                    temperatureStatus[item[0]] = datetime.datetime.now()
+                elif delta < TEMP_WARN_DELAY:
+                    warn = None
+
+            print warn
+
+            if verbose:
+                print 'start alarm delta:'
+                print delta
+
+            try:
+                f = open('temperatureStatus.pckl', 'wb')
+                pickle.dump(temperatureStatus, f)
+                f.close()
+            except Exception, e:
+                print e
+                print 'failed to save temperature status'
 
         elif item[2] == 'door':
             if verbose:
@@ -119,7 +162,7 @@ def setWarn( data ):
 
             if item[1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
                 warn = 'doorOpen'
-                msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec < ' + str(MAX_OPEN_TIME) + 'sec )'
+                msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec )'
             else:
                 warn = None
 
@@ -134,7 +177,10 @@ def setWarn( data ):
                 subprocess.Popen(['python', 'setSiren.py','-w', warn])
                 # send warning email - inside play check to avoid high volume of mails
                 putWarnAPI.postWarn(item[0], msg)
-
+            else:
+                if verbose:
+                    print 'setSiren is RUNNING'
+                    print ''
             return True
         
     return False
