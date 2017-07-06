@@ -37,6 +37,7 @@ MAX_OPEN_TIME = 2*60 # max time door open - seconds
 WARN_PIN = 21
 SIGNAL_TIME = 5
 MAX_TIME_SOUND = 5 * 60         # max time sound plays - seconds
+TEMPERATURE_WARN_DELAY = 10 * 60     # delay to start temperature alert
 
 TEMP_ABOVE_AUDIO_FILE = 'above.mp3'
 TEMP_BELOW_AUDIO_FILE = 'below.mp3'

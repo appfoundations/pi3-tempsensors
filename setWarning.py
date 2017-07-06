@@ -117,6 +117,8 @@ def setWarn( data ):
                     temperatureStatus[item[0]]
                     if temperatureStatus[item[0]] is not None:
                         delta = (datetime.datetime.now() - temperatureStatus[item[0]]).total_seconds()
+                        msg = msg + '<br/>'
+                        msg = msg + 'Deviation started at ' + temperatureStatus[item[0]].strftime('%d/%m/%Y %H:%M:%S')
                     else:
                         delta = None
                 except:
@@ -163,6 +165,8 @@ def setWarn( data ):
             if item[1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
                 warn = 'doorOpen'
                 msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec )'
+                msg = msg + '<br/>'
+                msg = msg + 'Door open since ' + lastStatus[3].strftime('%d/%m/%Y %H:%M:%S')
             else:
                 warn = None
 
