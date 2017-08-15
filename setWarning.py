@@ -87,10 +87,14 @@ def setWarn( data ):
     except:
         temperatureStatus = {}
 
+    warnList = []
+    multiMsg = '';
+    sensorId = None
     for item in data:
         limit = None
         warn  = None
         delta = None
+
         if item[2] == 'temperature':
             if verbose:
                 print 'temperature item:'
@@ -103,10 +107,10 @@ def setWarn( data ):
                 
             if limit is not None and (item[1] > float(limit['max'])):
                 warn = 'tempAbove'
-                msg = 'Warning! Temperature Above Acceptable Levels (' + str(item[1]) + ' > ' + str(limit['max']) + ')'
+                msg = 'Warning! Temperature Above Acceptable Levels (' + str(item[1]) + ' > ' + str(limit['max']) + ' - ' + item[0] + ')'
             elif limit is not None and (item[1] < float(limit['min'])):    
                 warn = 'tempBelow'
-                msg = 'Warning! Temperature Below Acceptable Levels (' + str(item[1]) + ' < ' + str(limit['min']) + ')'
+                msg = 'Warning! Temperature Below Acceptable Levels (' + str(item[1]) + ' < ' + str(limit['min']) + ' - ' + item[0] + ')'
             else:
                 warn = None
 
@@ -129,8 +133,10 @@ def setWarn( data ):
                     temperatureStatus[item[0]] = datetime.datetime.now()
                 elif delta < TEMP_WARN_DELAY:
                     warn = None
-
-            print warn
+                else:
+                    warnList.append(warn)
+                    multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
+                    sensorId = item[0]
 
             if verbose:
                 print 'start alarm delta:'
@@ -164,27 +170,36 @@ def setWarn( data ):
 
             if item[1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
                 warn = 'doorOpen'
-                msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec )'
+                warnList.append(warn)
+                msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec - ' + item[0] + ')'
                 msg = msg + '<br/>'
                 msg = msg + 'Door open since ' + lastStatus[3].strftime('%d/%m/%Y %H:%M:%S')
+                multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
+                sensorId = item[0]
             else:
                 warn = None
 
-        if warn is not None:
+
+    if len(warnList) > 0:
+        if verbose:
+            print 'setting warning'
+        # check if sound play is ON
+        grepCMD = "ps -ef | grep setSiren | grep -v grep"
+        setSirenCMD = ['python', 'setSiren.py']
+        for i, ww in enumerate(warnList):
+            setSirenCMD.append('-w')
+            setSirenCMD.append(ww)
+
+        pp = subprocess.Popen(grepCMD,shell=True,stdout=subprocess.PIPE)
+        if pp.communicate()[0] == '':
+            # if play is OFF - start play (backend/new thread)
+            # subprocess.Popen(setSirenCMD)
+            # send warning email - inside play check to avoid high volume of mails
+            putWarnAPI.postWarn(sensorId, multiMsg)
+        else:
             if verbose:
-                print 'setting warning'
-            # check if sound play is ON
-            cmd = "ps -ef | grep setSiren | grep -v grep"
-            pp = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
-            if pp.communicate()[0] == '':
-                # if play is OFF - start play (backend/new thread)
-                subprocess.Popen(['python', 'setSiren.py','-w', warn])
-                # send warning email - inside play check to avoid high volume of mails
-                putWarnAPI.postWarn(item[0], msg)
-            else:
-                if verbose:
-                    print 'setSiren is RUNNING'
-                    print ''
-            return True
+                print 'setSiren is RUNNING'
+                print ''
+        return True
         
     return False
