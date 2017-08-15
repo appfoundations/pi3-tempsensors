@@ -31,8 +31,10 @@ except:
     sys.exit(1)
 
 GPIO.setmode(GPIO.BCM)
-warn = ''
+warnTypes = ['tempAbove', 'tempBelow', 'doorOpen']
+warn = []
 player = None
+done = False
 
 # Define a threaded callback function
 def my_callback(channel):
@@ -52,6 +54,7 @@ def my_callback(channel):
 
 def main(argv):
     global warn
+    global warnTypes
     global player
     try:
         opts, args = getopt.getopt(argv,"hw:",["warn="])
@@ -68,33 +71,54 @@ def main(argv):
             print 'setSiren.py -w <warnType>'
             sys.exit()
         elif opt in ("-w", "--warn"):
-            warn = arg
+            if arg in warnTypes and arg not in warn:
+                warn.append( arg)
 
-    if   warn == 'tempAbove':
-        audioFile = tempAboveAudio
-    elif warn == 'tempBelow':
-        audioFile = tempBelowAudio
-    elif warn == 'doorOpen':
-        audioFile = doorOpenAudio
+     
     
-    try: 
-        audioFile
-    except NameError:
-        print "no audio file defined"
-        sys.exit()
-    else:
-        player = subprocess.Popen(["omxplayer", audioFile, "-o", "local", "--loop"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if len(warn) > 0 :
+        done = False
         GPIO.setup(CLEAR_WARN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(CLEAR_WARN_PIN, GPIO.BOTH, callback=my_callback, bouncetime=500)
+        GPIO.add_event_detect(CLEAR_WARN_PIN, GPIO.BOTH, callback=my_callback, bouncetime=50)
+    else:
+        done = True
 
+    initTime = datetime.datetime.now()
 
-    time.sleep(MAX_TIME)
-    try:
-        if player.poll() is None:
-            player.stdin.write("q")
-    except IOError as e:
-        print e
-    sys.exit()
+    while(not done):
+        for i, type in enumerate(warn):
+            wait = True
+            if   type == 'tempAbove':
+                audioFile = tempAboveAudio
+            elif type == 'tempBelow':
+                audioFile = tempBelowAudio
+            elif type == 'doorOpen':
+                audioFile = doorOpenAudio
+
+            try: 
+                audioFile   
+            except NameError:
+                print "no audio file defined"
+                sys.exit()
+            else:
+                player = subprocess.Popen(["omxplayer", audioFile, "-o", "local"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            while(wait):
+                time.sleep( 2 )
+                try:
+                    if player.poll() is not None:
+                        wait = False
+                except IOError as e:
+                    print e
+                    
+                if (datetime.datetime.now() - initTime).total_seconds() > MAX_TIME:
+                    try:
+                        if player.poll() is None:
+                            player.stdin.write("q")
+                    except IOError as e:
+                        print e
+                    sys.exit()
+
 
 if __name__ == "__main__":
    main(sys.argv[1:])
