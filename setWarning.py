@@ -89,6 +89,7 @@ def setWarn( data ):
 
     warnList = []
     multiMsg = '';
+    sensorId = None
     for item in data:
         limit = None
         warn  = None
@@ -134,7 +135,8 @@ def setWarn( data ):
                     warn = None
                 else:
                     warnList.append(warn)
-                    multiMsg = multiMsg + msg + '<br/>' + '<br/>'
+                    multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
+                    sensorId = item[0]
 
             if verbose:
                 print 'start alarm delta:'
@@ -172,7 +174,8 @@ def setWarn( data ):
                 msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec - ' + item[0] + ')'
                 msg = msg + '<br/>'
                 msg = msg + 'Door open since ' + lastStatus[3].strftime('%d/%m/%Y %H:%M:%S')
-                multiMsg = multiMsg + msg + '<br/>' + '<br/>'
+                multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
+                sensorId = item[0]
             else:
                 warn = None
 
@@ -192,7 +195,7 @@ def setWarn( data ):
             # if play is OFF - start play (backend/new thread)
             # subprocess.Popen(setSirenCMD)
             # send warning email - inside play check to avoid high volume of mails
-            putWarnAPI.postWarn(item[0], multiMsg)
+            putWarnAPI.postWarn(sensorId, multiMsg)
         else:
             if verbose:
                 print 'setSiren is RUNNING'
