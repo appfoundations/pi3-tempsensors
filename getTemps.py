@@ -8,6 +8,7 @@ import subprocess
 import os
 import requests
 import settings
+import pickle
 
 try:
   # read settings from settings.py
@@ -41,6 +42,20 @@ def readFile(file):
   return(thetext)
 
 def readProbes():
+
+  try:
+    f = open('pcklFiles/lastTemperatureValues.pckl', 'rb')
+    lastTempValues = pickle.load(f)
+    f.close()
+    if verbose:
+      print 'last temperature values:'
+      print lastTempValues
+      print ''
+  except Exception, e:
+    print e
+    print 'failed to read temperature values'
+    lastTempValues = {}
+
   probes = ''
   probesData = []
   probes=findProbes()
@@ -50,9 +65,31 @@ def readProbes():
     tempdata = probeData.split("\n")[1].split(" ")[9]
     temperature = float(tempdata[2:]) / 1000
     probeNum =  str(probes.index(probe)+1)
-    probesData.append((str(probeID)+'@'+str(serial),temperature,'temperature'))
-    if verbose:
-      print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+    if temperature < 50:
+      lastTempValues[str(probeID)] = temperature
+      probesData.append((str(probeID)+'@'+str(serial),temperature,'temperature'))
+      if verbose:
+        print "Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+    else:
+      if str(probeID) in lastTempValues:
+        temperature = lastTempValues[str(probeID)]
+        probesData.append((str(probeID)+'@'+str(serial),temperature,'temperature'))
+        if verbose:
+          print "FROM LAST VALUES:"
+          print "\tProbe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+      else:
+        if verbose:
+          print "SKIPED: Probe " + probeNum + " (id: " + probeID + ") Current Temperature is " + str(temperature) + " C"
+  
+
+  try:
+    f = open('pcklFiles/lastTemperatureValues.pckl', 'wb')
+    pickle.dump(lastTempValues, f)
+    f.close()
+  except Exception, e:
+    print e
+    print 'failed to save temperature values'
+
   return probesData
 
 # initialise

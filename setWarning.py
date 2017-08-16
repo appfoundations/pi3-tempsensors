@@ -34,7 +34,7 @@ GPIO.setmode(GPIO.BCM)     # set up BCM GPIO numbering
 
 def setWarn( data ):
     try:
-        f = open('buttonLastCall.pckl', 'rb')
+        f = open('pcklFiles/buttonLastCall.pckl', 'rb')
         last = pickle.load(f)
         f.close()
         diff = (datetime.datetime.now() - last).total_seconds()
@@ -54,7 +54,7 @@ def setWarn( data ):
         return
 
     try:
-        f = open('limits.pckl', 'rb')
+        f = open('pcklFiles/pcklFiles/limits.pckl', 'rb')
         limits = pickle.load(f)
         f.close()
         if verbose:
@@ -66,7 +66,7 @@ def setWarn( data ):
 
 
     try:
-        f = open('lastDoorStatus.pckl', 'rb')
+        f = open('pcklFiles/lastDoorStatus.pckl', 'rb')
         lastDoorStatus = pickle.load(f)
         f.close()
         if verbose:
@@ -77,7 +77,7 @@ def setWarn( data ):
         lastDoorStatus = None
 
     try:
-        f = open('temperatureStatus.pckl', 'rb')
+        f = open('pcklFiles/temperatureStatus.pckl', 'rb')
         temperatureStatus = pickle.load(f)
         f.close()
         if verbose:
@@ -143,7 +143,7 @@ def setWarn( data ):
                 print delta
 
             try:
-                f = open('temperatureStatus.pckl', 'wb')
+                f = open('pcklFiles/temperatureStatus.pckl', 'wb')
                 pickle.dump(temperatureStatus, f)
                 f.close()
             except Exception, e:

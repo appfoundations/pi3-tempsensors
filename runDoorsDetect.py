@@ -37,7 +37,7 @@ doorsData = {}
 def update_lastStatusRecord (entry):
     entry = entry + (datetime.datetime.now(),)
     try:
-        f = open('lastDoorStatus.pckl', 'rb')
+        f = open('pcklFiles/lastDoorStatus.pckl', 'rb')
         lastDoorStatus = pickle.load(f)
         f.close()
         if verbose:
@@ -56,7 +56,7 @@ def update_lastStatusRecord (entry):
         lastDoorStatus[entry[0]] = entry
 
     try:
-        f = open('lastDoorStatus.pckl', 'wb')
+        f = open('pcklFiles/lastDoorStatus.pckl', 'wb')
         pickle.dump(lastDoorStatus, f)
         f.close()
     except Exception, e:
