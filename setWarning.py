@@ -88,8 +88,8 @@ def setWarn( data ):
         temperatureStatus = {}
 
     warnList = []
-    multiMsg = '';
-    sensorId = None
+    multiMsg = ''
+    sensorIds = []
     for item in data:
         limit = None
         warn  = None
@@ -136,7 +136,7 @@ def setWarn( data ):
                 else:
                     warnList.append(warn)
                     multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
-                    sensorId = item[0]
+                    sensorIds.append(item[0])
 
             if verbose:
                 print 'start alarm delta:'
@@ -175,7 +175,7 @@ def setWarn( data ):
                 msg = msg + '<br/>'
                 msg = msg + 'Door open since ' + lastStatus[3].strftime('%d/%m/%Y %H:%M:%S')
                 multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
-                sensorId = item[0]
+                sensorIds.append(item[0])
             else:
                 warn = None
 
@@ -193,9 +193,9 @@ def setWarn( data ):
         pp = subprocess.Popen(grepCMD,shell=True,stdout=subprocess.PIPE)
         if pp.communicate()[0] == '':
             # if play is OFF - start play (backend/new thread)
-            # subprocess.Popen(setSirenCMD)
+            subprocess.Popen(setSirenCMD)
             # send warning email - inside play check to avoid high volume of mails
-            putWarnAPI.postWarn(sensorId, multiMsg)
+            putWarnAPI.postWarn(sensorIds, multiMsg)
         else:
             if verbose:
                 print 'setSiren is RUNNING'

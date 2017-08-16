@@ -17,10 +17,19 @@ except:
     sys.exit(1)
 
 
-def postWarn(probeid, descr):
+def postWarn(probeids, descr):
+    if verbose:
+        print "Post warn request to " + url
     headers = {'content-type': 'application/x-www-form-urlencoded'}
+    payload = {"key":api_key,"descr":descr}
 
-    payload = {"key":api_key,"probeid":probeid,"descr":descr}
+    print str(probeids)
+
+    for i,id in enumerate(probeids):
+        payload["probeid["+str(i)+"]"] = id
+
+    print str(payload)
+
     try:
         response = requests.request("POST", url, data=payload, headers=headers)
     except Exception, e:
