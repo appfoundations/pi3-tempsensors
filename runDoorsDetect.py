@@ -67,7 +67,7 @@ def update_lastStatusRecord (entry):
 # Define a threaded callback function to run in another thread when events are detected  
 def my_callback(channel):
     sleep(2)
-    value = 'OPEN' if GPIO.input(channel) else 'CLOSE'
+    value = 'OPEN' if GPIO.input(channel) else 'CLOSED'
     entry = [('Door-'+str(channel)+'@'+str(serial), value, 'door')]
     global doorsData
     doorsData[entry[0][0]] = entry[0]
