@@ -5,6 +5,10 @@ APIPOST = True # change to enable/disable api posting
 VERBOSE = True # change to enable/disable verbose output
 WARNING = True # change to enable/disable Siren/Beacon output
 
+# TIMING Settings
+SAMPLING_PERIOD = 2     # time betwen samples  (minutes) minimum: 1, max 59
+APIPOST_PERIOD  = 10    # time betwen api post (minutes) minimum: 1, max 59
+
 # API Settings
 URL = 'your api endpoint url'
 URL_LIMTS = 'your api endpoint url - get temperature limits'
@@ -31,6 +35,7 @@ CS   = 26
 
 # Door sensors 
 DOOR_PINS = [22]
+OPEN_VALUE = 1
 MAX_OPEN_TIME = 2*60 # max time door open - seconds
 
 # Siren/Beacon

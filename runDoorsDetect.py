@@ -9,6 +9,7 @@ from time import sleep
 import sqlite3
 import datetime
 import pickle
+import sys
 
 
 try:
@@ -21,12 +22,13 @@ except  Exception, e:
     sys.exit(1)
 
 try:
-    DOOR_PINS = settings.DOOR_PINS
-    DB_NAME = settings.DB_NAME
-    serial = settings.PI_KEY
-    verbose = settings.VERBOSE
-    WARNING = settings.WARNING
-    MAX_OPEN_TIME = settings.MAX_OPEN_TIME
+    DOOR_PINS       = settings.DOOR_PINS
+    DB_NAME         = settings.DB_NAME
+    serial          = settings.PI_KEY
+    verbose         = settings.VERBOSE
+    WARNING         = settings.WARNING
+    MAX_OPEN_TIME   = settings.MAX_OPEN_TIME
+    OPEN_VALUE      = settings.OPEN_VALUE
 except:
     print "Could not read settings"
     sys.exit(1)
@@ -67,7 +69,7 @@ def update_lastStatusRecord (entry):
 # Define a threaded callback function to run in another thread when events are detected  
 def my_callback(channel):
     sleep(2)
-    value = 'OPEN' if GPIO.input(channel) else 'CLOSED'
+    value = 'OPEN' if GPIO.input(channel) == OPEN_VALUE else 'CLOSED'
     entry = [('Door-'+str(channel)+'@'+str(serial), value, 'door')]
     global doorsData
     doorsData[entry[0][0]] = entry[0]
@@ -76,10 +78,9 @@ def my_callback(channel):
         print
     putDataDB.postData(entry)
     if WARNING:
-        update_lastStatusRecord(entry[0])
         print '\tset Warning'
         setWarning.setWarn(entry)
-        
+        update_lastStatusRecord(entry[0])
 
 # get an initial value from doors status
 for i, pin in enumerate(DOOR_PINS):
@@ -93,7 +94,7 @@ for i, pin in enumerate(DOOR_PINS):
   
 try:
     while 1:
-        sleep(MAX_OPEN_TIME)         # wait MAX_OPEN_TIME seconds  
+        sleep(int(MAX_OPEN_TIME))         # wait MAX_OPEN_TIME seconds  
         if WARNING:
             print '\tset Warning'
             setWarning.setWarn(doorsData.values())
