@@ -32,9 +32,25 @@ except Exception, e:
 
 GPIO.setmode(GPIO.BCM)     # set up BCM GPIO numbering  
 
+def stopAlarms( ):
+    if verbose:
+        print "Killing those noisy processes!!!"
+    killSirenCMD = "/usr/bin/pkill -f setSiren.py"
+    try:
+        subprocess.Popen(killSirenCMD,shell=True)
+    except Exception, e:
+        print e
+    
+    killSoundCMD = "/usr/bin/pkill -f omxplayer"
+    try:
+        subprocess.Popen(killSoundCMD,shell=True)
+    except Exception, e:
+        print e
+
+
 def setWarn( data ):
     try:
-        f = open('buttonLastCall.pckl', 'rb')
+        f = open('pcklFiles/buttonLastCall.pckl', 'rb')
         last = pickle.load(f)
         f.close()
         diff = (datetime.datetime.now() - last).total_seconds()
@@ -54,7 +70,7 @@ def setWarn( data ):
         return
 
     try:
-        f = open('limits.pckl', 'rb')
+        f = open('pcklFiles/limits.pckl', 'rb')
         limits = pickle.load(f)
         f.close()
         if verbose:
@@ -66,7 +82,7 @@ def setWarn( data ):
 
 
     try:
-        f = open('lastDoorStatus.pckl', 'rb')
+        f = open('pcklFiles/lastDoorStatus.pckl', 'rb')
         lastDoorStatus = pickle.load(f)
         f.close()
         if verbose:
@@ -77,7 +93,7 @@ def setWarn( data ):
         lastDoorStatus = None
 
     try:
-        f = open('temperatureStatus.pckl', 'rb')
+        f = open('pcklFiles/temperatureStatus.pckl', 'rb')
         temperatureStatus = pickle.load(f)
         f.close()
         if verbose:
@@ -87,9 +103,22 @@ def setWarn( data ):
     except:
         temperatureStatus = {}
 
-    warnList = []
-    multiMsg = '';
-    sensorId = None
+
+    try:
+        f = open('pcklFiles/lastWarnList.pckl', 'rb')
+        warnList = pickle.load(f)
+        f.close()
+        if verbose:
+            print 'last warn list'
+            print warnList
+            print ''
+    except:
+        warnList = {}
+
+
+    multiMsg = ''
+    sensorIds = []
+    changed = False
     for item in data:
         limit = None
         warn  = None
@@ -102,8 +131,9 @@ def setWarn( data ):
             try:
                 limit = limits[item[0]]
                 print limit
-            except:
+            except Exception,e:
                 limit = None
+                print e
                 
             if limit is not None and (item[1] > float(limit['max'])):
                 warn = 'tempAbove'
@@ -134,16 +164,22 @@ def setWarn( data ):
                 elif delta < TEMP_WARN_DELAY:
                     warn = None
                 else:
-                    warnList.append(warn)
                     multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
-                    sensorId = item[0]
+                    sensorIds.append(item[0])
+            
+            if item[0] not in warnList:
+                warnList[str(item[0])] = None
+
+            if warnList[str(item[0])] != warn:
+                warnList[str(item[0])] = warn
+                changed = True
 
             if verbose:
                 print 'start alarm delta:'
                 print delta
 
             try:
-                f = open('temperatureStatus.pckl', 'wb')
+                f = open('pcklFiles/temperatureStatus.pckl', 'wb')
                 pickle.dump(temperatureStatus, f)
                 f.close()
             except Exception, e:
@@ -167,35 +203,58 @@ def setWarn( data ):
             except Exception,e:
                 print e
                 diff = 0
+                lastStatus = None
 
             if item[1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
                 warn = 'doorOpen'
-                warnList.append(warn)
                 msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec - ' + item[0] + ')'
                 msg = msg + '<br/>'
                 msg = msg + 'Door open since ' + lastStatus[3].strftime('%d/%m/%Y %H:%M:%S')
                 multiMsg = multiMsg + msg + '<br/> ' + '<br/> '
-                sensorId = item[0]
+                sensorIds.append(item[0])
             else:
                 warn = None
 
+            if item[0] not in warnList:
+                warnList[str(item[0])] = None
 
-    if len(warnList) > 0:
+            if warnList[str(item[0])] != warn:
+                warnList[str(item[0])] = warn
+                changed = True
+    try:
+        f = open('pcklFiles/lastWarnList.pckl', 'wb')
+        pickle.dump(warnList, f)
+        f.close()
+    except Exception, e:
+        print e
+        print 'failed to save lastWarnList'
+
+    if changed:
+        if verbose:
+            print "Some warning changed - RESET alarms"
+        stopAlarms()
+
+    postWarnList = [];
+    for i, ww in warnList.iteritems():
+        if ww is not None:
+            postWarnList.append(str(ww))
+
+    if len(postWarnList) > 0:
         if verbose:
             print 'setting warning'
         # check if sound play is ON
         grepCMD = "ps -ef | grep setSiren | grep -v grep"
         setSirenCMD = ['python', 'setSiren.py']
-        for i, ww in enumerate(warnList):
+        for i, ww in enumerate(postWarnList):
             setSirenCMD.append('-w')
-            setSirenCMD.append(ww)
+            setSirenCMD.append(str(ww))
 
         pp = subprocess.Popen(grepCMD,shell=True,stdout=subprocess.PIPE)
         if pp.communicate()[0] == '':
             # if play is OFF - start play (backend/new thread)
-            # subprocess.Popen(setSirenCMD)
+            subprocess.Popen(setSirenCMD)
             # send warning email - inside play check to avoid high volume of mails
-            putWarnAPI.postWarn(sensorId, multiMsg)
+            # putWarnAPI.postWarn(sensorIds, multiMsg)
         else:
             if verbose:
                 print 'setSiren is RUNNING'

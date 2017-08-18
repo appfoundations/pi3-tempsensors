@@ -11,6 +11,7 @@ import sys
 try:
     verbose = settings.VERBOSE
     serial = settings.PI_KEY
+    OPEN_VALUE = settings.OPEN_VALUE
 except Exception, e:
     print __name__ + ": Could not read settings"
     print e
@@ -31,6 +32,6 @@ for i, pin in enumerate(DOOR_PINS):
 def readSwitches():
     values = []
     for i, pin in enumerate(DOOR_PINS):
-        value = 'OPEN' if GPIO.input(pin) else 'CLOSE'
+        value = 'OPEN' if GPIO.input(pin) == OPEN_VALUE else 'CLOSED'
         values.append(('Door-'+str(pin)+'@'+str(serial),value,'door'))
     return values

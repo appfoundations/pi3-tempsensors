@@ -53,7 +53,7 @@ def getFromUrl(key):
         print __name__ + ": error decoding response"
         return 
 
-    f = open('limits.pckl', 'wb')
+    f = open('pcklFiles/limits.pckl', 'wb')
     pickle.dump(limits, f)
     f.close()
 
