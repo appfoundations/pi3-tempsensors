@@ -254,7 +254,7 @@ def setWarn( data ):
             # if play is OFF - start play (backend/new thread)
             subprocess.Popen(setSirenCMD)
             # send warning email - inside play check to avoid high volume of mails
-            # putWarnAPI.postWarn(sensorIds, multiMsg)
+            putWarnAPI.postWarn(sensorIds, multiMsg)
         else:
             if verbose:
                 print 'setSiren is RUNNING'
