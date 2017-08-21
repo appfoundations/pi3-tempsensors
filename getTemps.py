@@ -14,6 +14,8 @@ try:
   # read settings from settings.py
   verbose = settings.VERBOSE
   serial = settings.PI_KEY
+  TEMPERATURE_VALID_MAX = settings.TEMPERATURE_VALID_MAX
+  TEMPERATURE_VALID_MIN = settings.TEMPERATURE_VALID_MIN
 except Exception, e:
   print __name__ + ": Could not read settings"
   print e
@@ -66,7 +68,7 @@ def readProbes(avgOnly):
     temperature = float(tempdata[2:]) / 1000
     probeNum =  str(probes.index(probe)+1)
 
-    if temperature < 50:
+    if (temperature < TEMPERATURE_VALID_MAX) and (temperature > TEMPERATURE_VALID_MIN):
       if str(probeID) not in lastTempValues:
         lastTempValues[str(probeID)] = []
 
