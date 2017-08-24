@@ -94,7 +94,7 @@ for i, pin in enumerate(DOOR_PINS):
   
 try:
     while 1:
-        sleep(int(MAX_OPEN_TIME))         # wait MAX_OPEN_TIME seconds  
+        sleep(int(MAX_OPEN_TIME/2))         # wait MAX_OPEN_TIME seconds  
         if WARNING:
             print '\tset Warning'
             setWarning.setWarn(doorsData.values())

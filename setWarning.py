@@ -204,8 +204,8 @@ def setWarn( data ):
                 print e
                 diff = 0
                 lastStatus = None
-
-            if item[1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
+            
+            if item[1] == 'OPEN' and lastDoorStatus[item[0]][1] == 'OPEN' and diff > ( MAX_OPEN_TIME ) :
                 warn = 'doorOpen'
                 msg = 'Warning! Door open for more than acceptable time (' + str(int(diff)) + 'sec > ' + str(MAX_OPEN_TIME) + 'sec - ' + item[0] + ')'
                 msg = msg + '<br/>'
